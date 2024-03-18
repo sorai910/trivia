@@ -11,7 +11,7 @@ class TriviaQuestionService {
     
     static func fetchQuestions(completion: (([Trivia]) -> Void)? = nil) {
         let amount = Int.random(in: 5...10)
-        let parameters = "amount=\(amount)&type=multiple" // Ensuring multiple choice questions
+        let parameters = "amount=\(amount)" // Ensuring multiple choice questions
         guard let url = URL(string: "https://opentdb.com/api.php?\(parameters)") else {
             print("Invalid URL")
             return
