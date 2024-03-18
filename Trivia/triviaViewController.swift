@@ -23,10 +23,7 @@ class triviaViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        trivias = createMockData()
-        totalquestion = trivias.count
-        configure(with: trivias[selectedTriviaIndex])
-        // Do any additional setup after loading the view.
+        resetQuestions()
     }
     
     private func configure(with trivia: Trivia){
@@ -37,52 +34,52 @@ class triviaViewController: UIViewController {
         questionLabel.text = trivia.question;
         questionCountLabel.text = "\(selectedTriviaIndex + 1)/\(totalquestion)"
         
-        for (index, subview) in answerLabels.arrangedSubviews.enumerated() {
-            if let button = subview as? UIButton, index < trivia.answers.count {
-                // Update the button's title based on its index
-                button.setTitle(trivia.answers[index], for: .normal)
-            }
+        // First, hide all answer buttons
+        answerLabels.arrangedSubviews.forEach { $0.isHidden = true }
+
+            // Then, configure and show only as many buttons as there are answers
+        for (index, answer) in trivia.answers.enumerated() {
+                if index < answerLabels.arrangedSubviews.count {
+                    let button = answerLabels.arrangedSubviews[index] as? UIButton
+                    button?.setTitle(answer, for: .normal)
+                    button?.isHidden = false // Only unhide the button if there's an answer to show
+                }
         }
-        
         
     }
     
-    private func createMockData()-> [Trivia]{
-        let mock1 = Trivia(question: "In what country did the first Starbucks open outside of North America?",
-                           answers: ["Japan", "France", "United Kingdom", "Brazil"],
-                           correctAnswer: "Japan"
-        )
-        let mock2 = Trivia(question: "Which company's slogan is \"You're in good hands?\" ?", 
-                           answers: ["Allstates","progressive", "StateFarm", "Liberty Mutual"]
-                           , correctAnswer: "Allstates")
-        let mock3 = Trivia(question: "Originally, Amazon only sold what kind of product?",
-                           answers: ["Clothing", "Grocery", "Electronics", "Books"],
-                           correctAnswer: "Books")
-        return [mock1, mock2, mock3]
-    }
     
     private func showAlert(){
         let alert = UIAlertController(title: "Game Over!", message: "Final score: \(correctAnswerCount)/\(totalquestion)", preferredStyle: .alert)
         
         alert.addAction(UIAlertAction(title: "Restart", style: .default, handler: { action in
                     // Handle the button press
-                    self.selectedTriviaIndex = 0
-                    self.correctAnswerCount = 0
-                    self.configure(with: self.trivias[self.selectedTriviaIndex])
+                    self.resetQuestions()
                     print("Restart button pressed")
                 }))
         self.present(alert, animated: true, completion: nil)
     }
     
+    private func resetQuestions() {
+        TriviaQuestionService.fetchQuestions() { questions in
+            self.trivias = questions
+            self.totalquestion = questions.count
+            self.selectedTriviaIndex = 0
+            self.correctAnswerCount = 0
+            self.configure(with: questions[self.selectedTriviaIndex])
+            // Do any additional setup after loading the view.
+        }
+    }
+    
     @IBAction func didTapAnswer(_ sender: UIButton) {
-        if let buttonTitle = sender.title(for: .normal), buttonTitle == trivias[selectedTriviaIndex].correctAnswer{
+        if let buttonTitle = sender.title(for: .normal), buttonTitle == trivias[self.selectedTriviaIndex].correctAnswer{
             correctAnswerCount += 1
         }
-        if selectedTriviaIndex + 1 == totalquestion {
+        if self.selectedTriviaIndex + 1 == totalquestion {
             showAlert()
         } else {
-            selectedTriviaIndex += 1
-            configure(with:trivias[selectedTriviaIndex])
+            self.selectedTriviaIndex += 1
+            configure(with:trivias[self.selectedTriviaIndex])
         }
     }
     /*

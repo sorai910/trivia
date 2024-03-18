@@ -10,6 +10,6 @@ import UIKit
 
 struct Trivia{
     let question: String;
-    let answers: [String]
-    let correctAnswer: String
+    let answers: [String];
+    let correctAnswer: String;
 }
